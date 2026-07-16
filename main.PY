@@ -17,11 +17,11 @@ running = True
 
 maze = [
     "####################",
-    "#  P    #          ##",
+    "#  P    #        E##",
     "# ###  #  ######   #",
     "# #       #        #",
     "# ######  #######  #",
-    "#                  #",
+    "#      X           #",
     "####################"
 ]
 
@@ -33,6 +33,24 @@ for row in range(len(maze)):
         if maze[row][col] == "P":
             player_x = col * TILE_SIZE
             player_y = row * TILE_SIZE
+
+exit_x = 0
+exit_y = 0
+
+for row in range(len(maze)):
+    for col in range(len(maze[row])):
+        if maze[row][col] == "E":
+            exit_x = col * TILE_SIZE
+            exit_y = row * TILE_SIZE
+
+enemy_x = 0
+enemy_y = 0
+
+for row in range(len(maze)):
+    for col in range(len(maze[row])):
+        if maze[row][col] == "X":
+            enemy_x = col * TILE_SIZE
+            enemy_y = row * TILE_SIZE            
 SPEED=1
 while running:
 
@@ -79,7 +97,13 @@ while running:
             )
                 pygame.draw.rect(screen, WHITE, wall)
 
+    exit_rect = pygame.Rect(exit_x, exit_y, TILE_SIZE, TILE_SIZE)
+    pygame.draw.rect(screen, (255, 0, 0), exit_rect)
+    enemy = pygame.Rect(enemy_x, enemy_y, TILE_SIZE, TILE_SIZE)
+    pygame.draw.rect(screen, (0, 0, 255), enemy)
     player=pygame.Rect(player_x,player_y,TILE_SIZE,TILE_SIZE)
+    if player.colliderect(exit_rect):
+        print("You Win!")
     for row in range(len(maze)):
         for col in range(len(maze[row])):
             if maze[row][col] == "#":
