@@ -20,8 +20,12 @@ DIRECTIONS = [
 ]
 
 running = True
-
-maze = [
+game_over = False
+game_win = False
+game_started = False
+font = pygame.font.SysFont(None, 36)
+title_font = pygame.font.SysFont(None, 72)
+level1 = [
     "####################",
     "#  P    #        E##",
     "# ###  #  ######   #",
@@ -30,6 +34,33 @@ maze = [
     "#      X           #",
     "####################"
 ]
+
+level2 = [
+    "####################",
+    "#P     #      #   E#",
+    "# ### ######  # ####",
+    "#   #      #       #",
+    "### ###### ######  #",
+    "#      X           #",
+    "####################"
+]
+
+level3 = [
+    "####################",
+    "#P #        #     E#",
+    "#  #######  ###### #",
+    "#      #        #  #",
+    "###### # #### # #  #",
+    "#   X            # #",
+    "####################"
+]
+
+levels = [level1, level2, level3]
+
+current_level = 0
+
+maze = levels[current_level]
+
 
 player_x = 0 
 player_y = 0
@@ -103,39 +134,51 @@ def a_star(start, goal):
 
     return []
 
-for row in range(len(maze)):
-    for col in range(len(maze[row])):
-        if maze[row][col] == "P":
-            player_row= row
-            player_col = col
-            player_x = col * TILE_SIZE
-            player_y = row * TILE_SIZE
+def load_level():
 
-exit_x = 0
-exit_y = 0
+    global maze
+    global player_row, player_col
+    global player_x, player_y
+    global enemy_row, enemy_col
+    global enemy_x, enemy_y
+    global exit_x, exit_y
 
-for row in range(len(maze)):
-    for col in range(len(maze[row])):
-        if maze[row][col] == "E":
-            exit_x = col * TILE_SIZE
-            exit_y = row * TILE_SIZE
+    maze = levels[current_level]
 
-enemy_x = 0
-enemy_y = 0
+    for row in range(len(maze)):
+        for col in range(len(maze[row])):
 
-for row in range(len(maze)):
-    for col in range(len(maze[row])):
-        if maze[row][col] == "X":
-            enemy_row = row
-            enemy_col = col
-            enemy_x = col * TILE_SIZE
-            enemy_y = row * TILE_SIZE            
+            if maze[row][col] == "P":
+                player_row = row
+                player_col = col
+                player_x = col * TILE_SIZE
+                player_y = row * TILE_SIZE
+
+            elif maze[row][col] == "X":
+                enemy_row = row
+                enemy_col = col
+                enemy_x = col * TILE_SIZE
+                enemy_y = row * TILE_SIZE
+
+            elif maze[row][col] == "E":
+                exit_x = col * TILE_SIZE
+                exit_y = row * TILE_SIZE
+
+                
+load_level()
+
+
 SPEED=TILE_SIZE
 ENEMY_SPEED = 1
 
 clock = pygame.time.Clock()
+font = pygame.font.SysFont(None, 50)
+small_font = pygame.font.SysFont(None, 30)
+enemy_timer = 0
+enemy_delay = 500   # milliseconds
 
 while running:
+    
 
     old_row = player_row
     old_col = player_col
@@ -175,7 +218,12 @@ while running:
     player_y = player_row * TILE_SIZE
 
     # ---------- ENEMY AI ----------
-    if moved:
+        # ---------- DRAW ----------
+    enemy_timer += clock.get_time()
+
+    if enemy_timer >= enemy_delay:
+
+        enemy_timer = 0
 
         enemy_row = enemy_y // TILE_SIZE
         enemy_col = enemy_x // TILE_SIZE
@@ -189,9 +237,33 @@ while running:
             enemy_row, enemy_col = path[1]
             enemy_x = enemy_col * TILE_SIZE
             enemy_y = enemy_row * TILE_SIZE
-
-    # ---------- DRAW ----------
     screen.fill(BLACK)
+    if game_over:
+        text = font.render("GAME OVER", True, (255, 0, 0))
+        restart = small_font.render("Press R to Restart", True, WHITE)
+        quit_text = small_font.render("Press ESC to Quit", True, WHITE)
+
+        screen.blit(text, (250, 180))
+        screen.blit(restart, (240, 260))
+        screen.blit(quit_text, (250, 300))
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            elif event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+
+                elif event.key == pygame.K_r:
+                    current_level = 0
+                    game_over = False
+                    load_level()
+
+        continue    
 
     for row in range(len(maze)):
         for col in range(len(maze[row])):
@@ -217,13 +289,21 @@ while running:
     pygame.draw.rect(screen, (0, 255, 0), player)
 
     if player.colliderect(enemy):
-        print("Game Over!")
-        running = False
+        game_over = True
+      
 
     if player.colliderect(exit_rect):
-        print("You Win!")
-        running = False
+        
+        if current_level < len(levels) - 1:
 
+            current_level += 1
+            load_level()
+
+        else:
+            print("Congratulations!")
+            running = False
+    level_text = font.render(f"Level: {current_level + 1}", True, (255, 255, 0))
+    screen.blit(level_text, (10, 10))
     pygame.display.update()
     clock.tick(5)
 
