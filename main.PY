@@ -12,6 +12,83 @@ pygame.display.set_caption("AI Maze Escape")
 BLACK = (0, 0, 0)
 WHITE =(255,255,255)
 TILE_SIZE=40
+def create_wall_sprite():
+
+    surf = pygame.Surface((TILE_SIZE, TILE_SIZE))
+
+    surf.fill((40, 50, 75))
+
+    pygame.draw.rect(
+        surf,
+        (25, 30, 45),
+        (4, 4, TILE_SIZE - 8, TILE_SIZE - 8)
+    )
+
+    pygame.draw.rect(
+        surf,
+        (70, 85, 115),
+        (0, 0, TILE_SIZE, TILE_SIZE),
+        2
+    )
+
+    return surf
+
+def create_player_sprite():
+
+    surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+
+    cx = TILE_SIZE // 2
+    cy = TILE_SIZE // 2
+
+    pygame.draw.circle(surf, (57, 255, 20), (cx, cy), 16)
+    pygame.draw.circle(surf, WHITE, (cx - 5, cy - 5), 4)
+    pygame.draw.circle(surf, BLACK, (cx - 5, cy + 2), 3)
+    pygame.draw.circle(surf, BLACK, (cx + 5, cy + 2), 3)
+
+    return surf
+
+def create_enemy_sprite():
+
+    surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+
+    cx = TILE_SIZE // 2
+    cy = TILE_SIZE // 2
+
+    # Outer frame
+    pygame.draw.rect(
+        surf,
+        (255, 0, 127),
+        (4, 4, TILE_SIZE - 8, TILE_SIZE - 8),
+        3,
+        border_radius=5
+    )
+
+    # Core
+    pygame.draw.circle(surf, (255, 0, 127), (cx, cy), 8)
+
+    # Eye
+    pygame.draw.circle(surf, WHITE, (cx, cy), 3)
+
+    return surf
+
+def create_exit_sprite():
+
+    surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+
+    cx = TILE_SIZE // 2
+    cy = TILE_SIZE // 2
+
+    pygame.draw.circle(surf, (255, 215, 0), (cx, cy), 18, 3)
+    pygame.draw.circle(surf, (255, 255, 200), (cx, cy), 10, 2)
+    pygame.draw.circle(surf, WHITE, (cx, cy), 4)
+
+    return surf
+
+wall_img = create_wall_sprite()
+player_img = create_player_sprite()
+enemy_img = create_enemy_sprite()
+exit_img = create_exit_sprite()
+
 DIRECTIONS = [
     (-1, 0),   # Up
     (1, 0),    # Down
@@ -25,34 +102,50 @@ game_win = False
 game_started = False
 font = pygame.font.SysFont(None, 36)
 title_font = pygame.font.SysFont(None, 72)
+
 level1 = [
-    "####################",
-    "#  P    #        E##",
-    "# ###  #  ######   #",
-    "# #       #        #",
-    "# ######  #######  #",
-    "#      X           #",
-    "####################"
+"####################",
+"#P        #       E#",
+"# ######  #  ####  #",
+"#      #  #  #     #",
+"###### # ##### ### #",
+"#      #         # #",
+"# #### ####### # # #",
+"#    #       # #   #",
+"# ## ######  # ### #",
+"# X          #     #",
+"#        #######   #",
+"####################"
 ]
 
 level2 = [
-    "####################",
-    "#P     #      #   E#",
-    "# ### ######  # ####",
-    "#   #      #       #",
-    "### ###### ######  #",
-    "#      X           #",
-    "####################"
+"####################",
+"#     #         #E #",
+"# ### # ###### ### #",
+"# #   #      #     #",
+"# # ####### ###### #",
+"# #                #",
+"# ###### ####### # #",
+"#            #     #",
+"###### ### # # ### #",
+"#P         # #    X#",
+"# ########## #######",
+"####################"
 ]
 
 level3 = [
-    "####################",
-    "#P #        #     E#",
-    "#  #######  ###### #",
-    "#      #        #  #",
-    "###### # #### # #  #",
-    "#   X            # #",
-    "####################"
+"####################",
+"#P     #       #  E#",
+"# ###### ##### # ###",
+"#      # #   # #   #",
+"###### # # # # ### #",
+"#    # # # # #     #",
+"# ## # # # # ##### #",
+"# ## #     #     # #",
+"# ####### # ### #  #",
+"#X         #     # #",
+"# ##################",
+"####################"
 ]
 
 levels = [level1, level2, level3]
@@ -178,6 +271,30 @@ enemy_timer = 0
 enemy_delay = 500   # milliseconds
 
 while running:
+
+    if not game_started:
+
+        screen.fill(BLACK)
+
+        title = title_font.render("AI MAZE ESCAPE", True, (255,255,0))
+        start = small_font.render("Press SPACE to Start", True, WHITE)
+
+        screen.blit(title, (180,200))
+        screen.blit(start, (200,300))
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+
+           if event.type == pygame.QUIT:
+                running = False
+
+           elif event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_SPACE:
+                   game_started = True
+
+        continue
     
 
     old_row = player_row
@@ -217,7 +334,7 @@ while running:
     player_x = player_col * TILE_SIZE
     player_y = player_row * TILE_SIZE
 
-    # ---------- ENEMY AI ----------
+ 
         # ---------- DRAW ----------
     enemy_timer += clock.get_time()
 
@@ -239,13 +356,15 @@ while running:
             enemy_y = enemy_row * TILE_SIZE
     screen.fill(BLACK)
     if game_over:
-        text = font.render("GAME OVER", True, (255, 0, 0))
-        restart = small_font.render("Press R to Restart", True, WHITE)
-        quit_text = small_font.render("Press ESC to Quit", True, WHITE)
+        text = font.render("GAME OVER", True, (255, 50, 50))
+    
+        restart = small_font.render("Press R to Restart", True, (255,255,255))
+        quit_text = small_font.render("Press ESC to Quit", True, (255,255,255))
 
-        screen.blit(text, (250, 180))
-        screen.blit(restart, (240, 260))
-        screen.blit(quit_text, (250, 300))
+        screen.blit(text, (280, 180))
+        
+        screen.blit(restart, (290, 280))
+        screen.blit(quit_text, (290, 320))
 
         pygame.display.update()
 
@@ -263,30 +382,59 @@ while running:
                     game_over = False
                     load_level()
 
-        continue    
+        continue
+    
+    if game_win:
 
+        screen.fill(BLACK)
+
+        text = font.render("CONGRATULATIONS!", True, (0,255,0))
+        text2 = small_font.render("You Escaped All Mazes!", True, WHITE)
+        restart = small_font.render("Press R to Play Again", True, WHITE)
+        quit_text = small_font.render("Press ESC to Quit", True, WHITE)
+
+        screen.blit(text, (270,180))
+        screen.blit(text2, (210,260))
+        screen.blit(restart, (280,310))
+        screen.blit(quit_text, (290,350))
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                running = False
+
+            elif event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+
+                elif event.key == pygame.K_r:
+
+                    current_level = 0
+                    game_win = False
+                    load_level()
+
+        continue
     for row in range(len(maze)):
         for col in range(len(maze[row])):
 
             if maze[row][col] == "#":
 
-                wall = pygame.Rect(
-                    col * TILE_SIZE,
-                    row * TILE_SIZE,
-                    TILE_SIZE,
-                    TILE_SIZE
-                )
-
-                pygame.draw.rect(screen, WHITE, wall)
+                screen.blit(
+                    wall_img,
+                    (col * TILE_SIZE, row * TILE_SIZE)
+                    )
 
     exit_rect = pygame.Rect(exit_x, exit_y, TILE_SIZE, TILE_SIZE)
-    pygame.draw.rect(screen, (255, 0, 0), exit_rect)
+    screen.blit(exit_img, (exit_x, exit_y))
 
     enemy = pygame.Rect(enemy_x, enemy_y, TILE_SIZE, TILE_SIZE)
-    pygame.draw.rect(screen, (0, 0, 255), enemy)
+    screen.blit(enemy_img, (enemy_x, enemy_y))   
 
     player = pygame.Rect(player_x, player_y, TILE_SIZE, TILE_SIZE)
-    pygame.draw.rect(screen, (0, 255, 0), player)
+    screen.blit(player_img, (player_x,player_y))
 
     if player.colliderect(enemy):
         game_over = True
@@ -300,9 +448,9 @@ while running:
             load_level()
 
         else:
-            print("Congratulations!")
-            running = False
-    level_text = font.render(f"Level: {current_level + 1}", True, (255, 255, 0))
+            game_win = True
+            
+    level_text = font.render(f"Level: {current_level + 1}", True, (0, 255, 255))
     screen.blit(level_text, (10, 10))
     pygame.display.update()
     clock.tick(5)
